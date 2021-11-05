@@ -18,6 +18,7 @@ class MainWindow(qtw.QMainWindow):
         self.ui.contrastSlider.valueChanged.connect(self.contrastChange)
         self.ui.browseFile.clicked.connect(self.loadImageFile)
         self.ui.stopBtn.clicked.connect(self.StopVideo)
+        self.ui.startBtn.clicked.connect(self.StartVideo)
 
         self.imageCapture = VideoStream()
 
@@ -46,7 +47,10 @@ class MainWindow(qtw.QMainWindow):
         print('Read a new frame: ',  self.framecount)
 
     def StopVideo(self):
-        self.imageCapture.Stop()
+        self.imageCapture.stop()
+
+    def StartVideo(self):
+        self.imageCapture.start()
 
 if __name__ == '__main__':
     app = qtw.QApplication([])
