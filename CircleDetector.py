@@ -9,10 +9,10 @@ class CircleDetector:
 
         self.ImgProcess = ImgProcess()
 
-    def detect(self, image, radius = 1.2, dist = 1, param1 = 50, param2 = 2000, minRad = 0, maxRad = 0):
+    def detect(self, image, acc_res = 1.2, dist = 1, param1 = 50, param2 = 2000, minRad = 0, maxRad = 0):
         output = image.copy()
         gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
-        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, radius, dist, param1=param1, param2=param2, minRadius=minRad, maxRadius=maxRad)
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, acc_res, dist, param1=param1, param2=param2, minRadius=minRad, maxRadius=maxRad)
         
         # ensure at least some circles were found
         if circles is not None:

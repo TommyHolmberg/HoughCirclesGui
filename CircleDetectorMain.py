@@ -114,9 +114,19 @@ class MainWindow(qtw.QMainWindow):
             self.imageCapture.setFile(self.filename)
             self.imageCapture.start()
 
+    def SetCircleParams(self, image):
+        shortEdge = image.shape[0] if image.shape[0] < image.shape[1] else image.shape[1]
+        self.resVal = shortEdge * self.ui.radiusSpinBox.value() / 100
+        self.minDistVal = shortEdge * self.ui.minDistSpinBox.value() / 100
+        self.param1Val = shortEdge * self.ui.param1SpinBox.value() / 100
+        self.param2Val = shortEdge * self.ui.param2SpinBox.value() / 100
+        self.minRadVal = shortEdge * self.ui.minRadSpinBox.value() / 100
+        self.maxRadVal = shortEdge * self.ui.maxRadSpinBox.value() / 100
+
     def ImageUpdateSlot(self, image):
+        self.SetCircleParams(image)
         imgContrast = self.ImgProcess.apply_brightness_contrast(image, contrast=self.ui.contrastSpinBox.value())
-        imgCircles = self.CircleDetector.detect(imgContrast, self.ui.radiusSpinBox.value(), self.ui.minDistSpinBox.value(), self.ui.param1SpinBox.value(), self.ui.param2SpinBox.value(), self.ui.minRadSpinBox.value(), self.ui.maxRadSpinBox.value())
+        imgCircles = self.CircleDetector.detect(imgContrast, self.resVal, int(self.minDistVal), int(self.param1Val), int(self.param2Val), int(self.minRadVal), int(self.maxRadVal))
         qtImage = self.ImageFormat.ToQtPixmap(imgCircles)
         self.ui.VideoFeed.setPixmap(qtg.QPixmap.fromImage(qtImage))
         self.framecount += 1
