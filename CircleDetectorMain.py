@@ -99,32 +99,43 @@ class MainWindow(qtw.QMainWindow):
 
 
     def radiusSliderChange(self):
-        self.radiusValue = self.ui.radiusSlider.value()/10;
+        self.radiusValue = self.ui.radiusSlider.value()/10
         self.ui.radiusSpinBox.setValue(self.radiusValue)
 
     def radiusSpinBoxChange(self):
-        self.radiusValue = self.ui.radiusSpinBox.value();
-        self.ui.radiusSlider.setValue(self.radiusValue*10)
+        self.radiusValue = self.ui.radiusSpinBox.value()
+        self.ui.radiusSlider.setValue(int(self.radiusValue*10))
 
     def loadImageFile(self):
         self.filename = qtw.QFileDialog.getOpenFileName(filter="Image (*.*)")[0]
-        if self.filename is not "":
+        if self.filename != "":
             if (self.imageCapture.isRunning()):
                 self.imageCapture.exit() #Bad practice but it's the only way to get out of HoughCircles
             self.imageCapture.setFile(self.filename)
             self.imageCapture.start()
 
-    def SetCircleParams(self, image):
+    def SetCircleParams(self):
+        self.resVal = self.ui.radiusSpinBox.value()
+        self.minDistVal = self.ui.minDistSpinBox.value()
+        self.param1Val = self.ui.param1SpinBox.value()
+        self.param2Val = self.ui.param2SpinBox.value()
+        self.minRadVal = self.ui.minRadSpinBox.value()
+        self.maxRadVal = self.ui.maxRadSpinBox.value()
+
+    def SetCircleParamsScaled(self, scale):
+        self.resVal = self.ui.radiusSpinBox.value() * scale
+        self.minDistVal = self.ui.minDistSpinBox.value() * scale
+        self.param1Val = self.ui.param1SpinBox.value() * scale
+        self.param2Val = self.ui.param2SpinBox.value() * scale
+        self.minRadVal = self.ui.minRadSpinBox.value() * scale
+        self.maxRadVal = self.ui.maxRadSpinBox.value() * scale
+
+    def SetCircleParamsPercent(self, image):
         shortEdge = image.shape[0] if image.shape[0] < image.shape[1] else image.shape[1]
-        self.resVal = shortEdge * self.ui.radiusSpinBox.value() / 100
-        self.minDistVal = shortEdge * self.ui.minDistSpinBox.value() / 100
-        self.param1Val = shortEdge * self.ui.param1SpinBox.value() / 100
-        self.param2Val = shortEdge * self.ui.param2SpinBox.value() / 100
-        self.minRadVal = shortEdge * self.ui.minRadSpinBox.value() / 100
-        self.maxRadVal = shortEdge * self.ui.maxRadSpinBox.value() / 100
+        self.SetCircleParamsScaled(shortEdge/100)
 
     def ImageUpdateSlot(self, image):
-        self.SetCircleParams(image)
+        self.SetCircleParams()
         imgContrast = self.ImgProcess.apply_brightness_contrast(image, contrast=self.ui.contrastSpinBox.value())
         imgCircles = self.CircleDetector.detect(imgContrast, self.resVal, int(self.minDistVal), int(self.param1Val), int(self.param2Val), int(self.minRadVal), int(self.maxRadVal))
         qtImage = self.ImageFormat.ToQtPixmap(imgCircles)

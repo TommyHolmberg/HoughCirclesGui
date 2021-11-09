@@ -41,6 +41,9 @@ class VideoStream(qtc.QThread):
     else:
       image = cv2.imread(self.filepath, cv2.IMREAD_UNCHANGED)
 
+    if len(image.shape) == 2:
+      image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
     return image
 
   def stop(self):
