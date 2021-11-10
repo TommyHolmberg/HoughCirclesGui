@@ -131,8 +131,11 @@ class MainWindow(qtw.QMainWindow):
         self.maxRadVal = self.ui.maxRadSpinBox.value() * scale
 
     def SetCircleParamsPercent(self, image):
-        shortEdge = image.shape[0] if image.shape[0] < image.shape[1] else image.shape[1]
+        shortEdge = self.ImageShortestEdge(image)
         self.SetCircleParamsScaled(shortEdge/100)
+
+    def ImageShortestEdge(self, image):
+        return image.shape[0] if image.shape[0] < image.shape[1] else image.shape[1]
 
     def ImageUpdateSlot(self, image):
         self.SetCircleParams()
