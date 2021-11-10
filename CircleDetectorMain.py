@@ -19,6 +19,7 @@ class StateSettings(NoValue):
     param2 = "param2"
     minRad = "minRad"
     maxRad = "maxRad"
+    paramScale = "paramScale"
 
 
 class MainWindow(qtw.QMainWindow):
@@ -51,7 +52,8 @@ class MainWindow(qtw.QMainWindow):
             self.ui.param1SpinBox,
             self.ui.param2SpinBox,
             self.ui.minRadSpinBox,
-            self.ui.maxRadSpinBox
+            self.ui.maxRadSpinBox,
+            self.ui.paramScaleSpinBox
         ]
 
     def loadState(self):
@@ -114,14 +116,6 @@ class MainWindow(qtw.QMainWindow):
             self.imageCapture.setFile(self.filename)
             self.imageCapture.start()
 
-    def SetCircleParams(self):
-        self.resVal = self.ui.radiusSpinBox.value()
-        self.minDistVal = self.ui.minDistSpinBox.value()
-        self.param1Val = self.ui.param1SpinBox.value()
-        self.param2Val = self.ui.param2SpinBox.value()
-        self.minRadVal = self.ui.minRadSpinBox.value()
-        self.maxRadVal = self.ui.maxRadSpinBox.value()
-
     def SetCircleParamsScaled(self, scale):
         self.resVal = self.ui.radiusSpinBox.value() * scale
         self.minDistVal = self.ui.minDistSpinBox.value() * scale
@@ -138,7 +132,7 @@ class MainWindow(qtw.QMainWindow):
         return image.shape[0] if image.shape[0] < image.shape[1] else image.shape[1]
 
     def ImageUpdateSlot(self, image):
-        self.SetCircleParams()
+        self.SetCircleParamsScaled(self.ui.paramScaleSpinBox.value())
         imgContrast = self.ImgProcess.apply_brightness_contrast(image, contrast=self.ui.contrastSpinBox.value())
         imgCircles = self.CircleDetector.detect(imgContrast, self.resVal, int(self.minDistVal), int(self.param1Val), int(self.param2Val), int(self.minRadVal), int(self.maxRadVal))
         qtImage = self.ImageFormat.ToQtPixmap(imgCircles)
