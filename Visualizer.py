@@ -4,7 +4,7 @@ import numpy as np
 class Visualizer:
     def plotCircleDistances(self, list):
         plt.plot(range(len(list)), list)
-        plt.title("Circle detection after moving 1mm")
+        plt.title("Circle detection")
         plt.xticks(range(0,10))
         plt.xlim(0, 10)
         plt.ylim(10, 20)
