@@ -6,6 +6,9 @@ from ImageFormat import ImageFormat
 from CircleDetector import CircleDetector
 from ImgProcess import ImgProcess
 from houghCirclesGUI import Ui_MainWindow
+from Analysis import Analysis
+from Visualizer import Visualizer
+
 import cv2, imutils
 from enum import Enum
 class NoValue(Enum):
@@ -32,14 +35,15 @@ class MainWindow(qtw.QMainWindow):
         self.ImgProcess = ImgProcess()
         self.CircleDetector = CircleDetector()
         self.ImageFormat = ImageFormat()
-
+        self.analysis = Analysis()
+        self.visualizer = Visualizer()
         self.imageCapture = VideoStream()
 
-        #self.ui.connect(self.imageCapture, self.imageCapture.ImageUpdate, self.ImageUpdateSlot)
-
         self.imageCapture.ImageUpdate.connect(self.ImageUpdateSlot, qtc.Qt.DirectConnection)
-        self.setDefaultValues()
+        self.imageCapture.FinishedImagesInFolder.connect(self.FinishedImagesInFolderSlot)
+        self.imageCapture.FinishedPlaying.connect(self.FinishedPlayingSlot)
 
+        self.setDefaultValues()
         self.loadState()
 
     def setupUi(self):
@@ -94,11 +98,12 @@ class MainWindow(qtw.QMainWindow):
         self.ui.stopBtn.clicked.connect(self.StopVideo)
         self.ui.startBtn.clicked.connect(self.StartVideo)
         self.ui.browseFile.clicked.connect(self.loadImageFile)
+        self.ui.browseDir.clicked.connect(self.loadFolder)
 
     def setDefaultValues(self):
         self.framecount = 0
         self.ui.radiusSpinBox.setValue(1.2)
-
+        self.changedFile = False
 
     def radiusSliderChange(self):
         self.radiusValue = self.ui.radiusSlider.value()/10
@@ -108,12 +113,28 @@ class MainWindow(qtw.QMainWindow):
         self.radiusValue = self.ui.radiusSpinBox.value()
         self.ui.radiusSlider.setValue(int(self.radiusValue*10))
 
+    def loadFolder(self):
+        self.filename = qtw.QFileDialog.getExistingDirectory()
+        self.changedFile = True
+        self.startFeed()
+
     def loadImageFile(self):
         self.filename = qtw.QFileDialog.getOpenFileName(filter="Image (*.*)")[0]
+        self.changedFile = True
+        self.startFeed()
+
+    def startFeed(self):
+        if self.imageCapture.isRunning() != True:
+            self.setupVideoFeed()
+
+
+    def setupVideoFeed(self):
         if self.filename != "":
             if (self.imageCapture.isRunning()):
                 self.imageCapture.exit() #Bad practice but it's the only way to get out of HoughCircles
+            self.CircleDetector.reset()
             self.imageCapture.setFile(self.filename)
+            self.changedFile = False
             self.imageCapture.start()
 
     def SetCircleParamsScaled(self, scale):
@@ -139,7 +160,23 @@ class MainWindow(qtw.QMainWindow):
         self.ui.VideoFeed.setPixmap(qtg.QPixmap.fromImage(qtImage))
         self.framecount += 1
         print('Read a new frame: ',  self.framecount)
-        self.imageCapture.wait(1000)
+        if (self.changedFile):
+            self.StopVideo()
+
+
+    def FinishedImagesInFolderSlot(self, filelist):
+        self.Analysis(filelist)
+
+    def FinishedPlayingSlot(self):
+        if (self.changedFile):
+            self.setupVideoFeed()
+
+
+    def Analysis(self, filelist):
+        distances = self.analysis.distanceBetweenEverySecondCircle(self.CircleDetector, filelist)
+        self.visualizer.plotCircleDistances(distances)
+        self.visualizer.exportMeanStdVarToCsv("Distances.csv", distances)
+
 
     def StopVideo(self):
         self.imageCapture.stop()
